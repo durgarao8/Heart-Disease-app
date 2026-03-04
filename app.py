@@ -2,151 +2,86 @@ import streamlit as st
 import numpy as np
 import joblib
 
-# ---------------- PAGE CONFIG ----------------
-st.set_page_config(
-    page_title="AI Heart Disease Predictor",
-    page_icon="❤️",
-    layout="wide"
-)
-
-# ---------------- CUSTOM STYLE ----------------
-st.markdown("""
-<style>
-
-/* Background Image */
-.stApp {
-    background-image: url("https://images.unsplash.com/photo-1581595219315-a187dd40c322?auto=format&fit=crop&w=1920&q=80");
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-}
-
-/* Glass effect card */
-.glass {
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(12px);
-    border-radius: 15px;
-    padding: 30px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
-}
-
-/* Title */
-.title {
-    font-size:48px;
-    font-weight:700;
-    text-align:center;
-    color:white;
-}
-
-.subtitle {
-    font-size:20px;
-    text-align:center;
-    color:#f1f1f1;
-    margin-bottom:30px;
-}
-
-/* Result styles */
-.good {
-    background:#1b5e20;
-    color:white;
-    padding:20px;
-    border-radius:10px;
-    text-align:center;
-    font-size:22px;
-}
-
-.bad {
-    background:#b71c1c;
-    color:white;
-    padding:20px;
-    border-radius:10px;
-    text-align:center;
-    font-size:22px;
-}
-
-/* Button animation */
-.stButton>button {
-    background: linear-gradient(45deg,#ff416c,#ff4b2b);
-    color:white;
-    border:none;
-    border-radius:8px;
-    padding:12px 25px;
-    font-size:16px;
-    transition:0.3s;
-}
-
-.stButton>button:hover {
-    transform: scale(1.05);
-    box-shadow:0 5px 15px rgba(0,0,0,0.3);
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-# ---------------- HEADER ----------------
-st.markdown("<div class='title'>❤️ AI Heart Disease Prediction System</div>", unsafe_allow_html=True)
-st.markdown("<div class='subtitle'>Machine Learning Powered Healthcare Assistant</div>", unsafe_allow_html=True)
-
-# ---------------- LOAD MODEL ----------------
+# -----------------------------
+# Load trained model
+# -----------------------------
 model = joblib.load("heart_model.pkl")
 
-# ---------------- LAYOUT ----------------
-col1, col2 = st.columns([1,1])
+# -----------------------------
+# Page Title
+# -----------------------------
+st.title("Heart Disease Prediction System")
+st.write("Predict the risk of Coronary Heart Disease in 10 years")
 
-# ---------------- INPUT PANEL ----------------
+st.divider()
+
+st.subheader("Enter Patient Medical Details")
+
+# -----------------------------
+# Patient Inputs
+# -----------------------------
+
+col1, col2 = st.columns(2)
+
 with col1:
 
-    st.markdown("<div class='glass'>", unsafe_allow_html=True)
+    male = st.selectbox("Gender", [0,1], help="0 = Female, 1 = Male")
 
-    st.subheader("Patient Information")
+    age = st.number_input("Age", min_value=20, max_value=100)
 
-    age = st.slider("Age", 20, 100, 40)
+    education = st.selectbox(
+        "Education Level",
+        [1,2,3,4],
+        help="1 = Some High School, 2 = High School/GED, 3 = Some College, 4 = College"
+    )
 
-    BMI = st.number_input("BMI", 10.0, 50.0, 25.0)
+    currentSmoker = st.selectbox("Current Smoker", [0,1])
 
-    sysBP = st.slider("Systolic Blood Pressure", 80, 200, 120)
+    cigsPerDay = st.number_input("Cigarettes Per Day", min_value=0, max_value=50)
 
-    glucose = st.slider("Glucose Level", 50, 400, 90)
+    BPMeds = st.selectbox("Blood Pressure Medication", [0,1])
 
-    heartRate = st.slider("Heart Rate", 40, 150, 70)
+    prevalentStroke = st.selectbox("History of Stroke", [0,1])
 
-    smoker = st.selectbox("Current Smoker", [0,1])
+    prevalentHyp = st.selectbox("Hypertension", [0,1])
 
-    cigsPerDay = st.slider("Cigarettes Per Day", 0, 50, 0)
 
-    predict = st.button("Predict Heart Disease Risk")
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
-# ---------------- RESULT PANEL ----------------
 with col2:
 
-    st.markdown("<div class='glass'>", unsafe_allow_html=True)
+    diabetes = st.selectbox("Diabetes", [0,1])
 
-    st.subheader("Prediction Result")
+    totChol = st.number_input("Total Cholesterol", min_value=100, max_value=600)
 
-    if predict:
+    sysBP = st.number_input("Systolic Blood Pressure", min_value=80, max_value=250)
 
-        data = np.array([[age, smoker, cigsPerDay, sysBP, glucose, BMI, heartRate]])
+    diaBP = st.number_input("Diastolic Blood Pressure", min_value=40, max_value=150)
 
-        prediction = model.predict(data)
+    BMI = st.number_input("Body Mass Index (BMI)", min_value=10.0, max_value=60.0)
 
-        if prediction[0] == 1:
+    heartRate = st.number_input("Heart Rate", min_value=40, max_value=200)
 
-            st.markdown("<div class='bad'>⚠️ High Risk of Heart Disease</div>", unsafe_allow_html=True)
+    glucose = st.number_input("Glucose Level", min_value=40, max_value=400)
 
-        else:
 
-            st.markdown("<div class='good'>✅ Low Risk of Heart Disease</div>", unsafe_allow_html=True)
+st.divider()
 
-        st.balloons()
+# -----------------------------
+# Prediction
+# -----------------------------
 
+if st.button("Predict Heart Disease Risk"):
+
+    data = np.array([[male, age, education, currentSmoker, cigsPerDay,
+                      BPMeds, prevalentStroke, prevalentHyp, diabetes,
+                      totChol, sysBP, diaBP, BMI, heartRate, glucose]])
+
+    prediction = model.predict(data)
+
+    if prediction[0] == 1:
+        st.error("⚠️ High Risk of Heart Disease within 10 years")
     else:
-        st.info("Enter patient details and click the prediction button.")
+        st.success("✅ Low Risk of Heart Disease")
 
-    st.markdown("</div>", unsafe_allow_html=True)
+st.divider()
 
-# ---------------- FOOTER ----------------
-st.markdown("---")
-st.markdown("<center style='color:white'>AI Healthcare App • Built with Streamlit & Machine Learning</center>", unsafe_allow_html=True)
-
+st.caption("Machine Learning based Heart Disease Prediction System")
